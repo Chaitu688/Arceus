@@ -30,5 +30,4 @@ c.backup
 # Docker
 Dockerfile
 docker-compose.yml
-docker-entrypoint.sh
 .dockerignore
