@@ -646,6 +646,7 @@ HTML_PAGE = """<!doctype html>
         }
         if (isConnected) {
           actionButtons.push('<button type="button" data-action="update-pogo">Update PoGo</button>');
+          actionButtons.push('<button type="button" class="ghost" data-action="update-cosmog">Update Cosmog</button>');
           actionButtons.push('<button type="button" class="ghost" data-action="start-cosmog">Start Cosmog</button>');
           actionButtons.push('<button type="button" class="ghost" data-action="stop-cosmog">Stop Cosmog</button>');
           actionButtons.push('<button type="button" class="ghost" data-action="cosmog-log">Cosmog Log</button>');
@@ -684,6 +685,13 @@ HTML_PAGE = """<!doctype html>
             }
             if (action === "update-pogo") {
               await openVersionPicker(device.serial);
+              return;
+            }
+            if (action === "update-cosmog") {
+              await deviceAction("Updating Cosmog...", "/api/update_cosmog_zip", {
+                serial: device.serial,
+                remote_dir: currentRemoteDir(),
+              });
               return;
             }
             if (action === "start-cosmog") {
@@ -1492,7 +1500,7 @@ class DevicePanel:
             "output": "\n\n".join(outputs),
         }
 
-    def extract_cosmog_zip(self, zip_path: str) -> tuple[pathlib.Path, list[pathlib.Path], pathlib.Path]:
+    def extract_cosmog_zip(self, zip_path: str) -> tuple[pathlib.Path, list[pathlib.Path], pathlib.Path, pathlib.Path | None]:
         archive_path = self.resolve_zip_input(zip_path, "Cosmog ZIP")
         extract_dir = self.cosmog_updates_dir / archive_path.stem
 
@@ -1535,11 +1543,22 @@ class DevicePanel:
                     dst.write(src.read())
                 libs.append(dest)
 
-        return launcher_path, libs, extract_dir
+            config_members = [
+                name for name in members
+                if not name.endswith("/") and name.rstrip("/").count("/") == 0
+                and os.path.basename(name) == "config.toml"
+            ]
+            config_path: pathlib.Path | None = None
+            if config_members:
+                config_path = extract_dir / "config.toml"
+                with zf.open(config_members[0]) as src, open(config_path, "wb") as dst:
+                    dst.write(src.read())
+
+        return launcher_path, libs, config_path, extract_dir
 
     def update_cosmog_zip(self, serial: str, zip_path: str, remote_dir: str | None = None) -> dict[str, str]:
         remote_dir = self.normalize_remote_dir(remote_dir)
-        launcher_path, libs, extract_dir = self.extract_cosmog_zip(zip_path or self.default_cosmog_zip())
+        launcher_path, libs, config_path, extract_dir = self.extract_cosmog_zip(zip_path or self.default_cosmog_zip())
         remote_launcher_name = "com.nianticlabs.pokemongo"
 
         outputs = []
@@ -1557,6 +1576,12 @@ class DevicePanel:
             result = self.run_adb(serial, ["push", str(lib_path), tmp_lib])
             outputs.append((result.stdout + result.stderr).strip())
 
+        tmp_config: str | None = None
+        if config_path is not None:
+            tmp_config = f"/data/local/tmp/config.toml"
+            result = self.run_adb(serial, ["push", str(config_path), tmp_config])
+            outputs.append((result.stdout + result.stderr).strip())
+
         commands = [
             f"rm -f {remote_dir}/{remote_launcher_name}",
             f"mv {tmp_launcher} {remote_dir}/{remote_launcher_name}",
@@ -1567,6 +1592,12 @@ class DevicePanel:
             commands.append(f"mv /data/local/tmp/{lib_path.name} {remote_dir}/lib/{lib_path.name}")
             commands.append(f"chmod 755 {remote_dir}/lib/{lib_path.name}")
             commands.append(f"chown system:system {remote_dir}/lib/{lib_path.name}")
+
+        if tmp_config is not None:
+            commands.append(f"rm -f {remote_dir}/config.toml")
+            commands.append(f"mv {tmp_config} {remote_dir}/config.toml")
+            commands.append(f"chmod 644 {remote_dir}/config.toml")
+            commands.append(f"chown system:system {remote_dir}/config.toml")
 
         for cmd in commands:
             result = self.run_root_shell(serial, cmd)
@@ -1581,6 +1612,7 @@ class DevicePanel:
                     f"Launcher: {launcher_path}",
                     f"Installed launcher name: {remote_launcher_name}",
                     "Libraries: " + ", ".join(str(path) for path in libs),
+                    f"Config: {'installed' if config_path else 'not in ZIP'}",
                 ]
                 + [part for part in outputs if part]
             ),
