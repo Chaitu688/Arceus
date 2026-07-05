@@ -1,0 +1,35 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 7070,
+    "expected_secret": "your-secret-here",
+    "strict_secret": false,
+    "echo_text": false,
+    "echo_binary": false,
+    "welcome_json": {
+      "type": "welcome",
+      "server": "local-rotom"
+    },
+    "rules": [
+      {
+        "path": "/control",
+        "kind": "text",
+        "contains": "ping",
+        "response_type": "json",
+        "response": {
+          "type": "pong"
+        }
+      },
+      {
+        "path": "/",
+        "kind": "text",
+        "json_key": "type",
+        "json_value": "hello",
+        "response_type": "json",
+        "response": {
+          "type": "hello_ack"
+        }
+      }
+    ]
+  }
+}

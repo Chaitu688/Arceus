@@ -1,0 +1,29 @@
+services:
+  cosmog-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmog-device-panel
+    network_mode: host
+    environment:
+      ADB_SERVER_SOCKET: tcp:127.0.0.1:5037
+      MANAGE_ADB: "0"
+      PANEL_PORT: "8090"
+    volumes:
+      - .:/workspace
+    restart: unless-stopped
+
+  cosmog-panel-adb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmog-device-panel-adb
+    network_mode: host
+    privileged: true
+    environment:
+      MANAGE_ADB: "1"
+      PANEL_PORT: "8091"
+    volumes:
+      - .:/workspace
+      - /dev/bus/usb:/dev/bus/usb
+    restart: unless-stopped

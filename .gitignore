@@ -1,0 +1,29 @@
+# Python
+*.pyc
+__pycache__/
+
+# Managed folders (user provides their own assets)
+apks/
+base_apks/
+split_apks/
+plugin_libs/
+lib/
+
+# Runtime data
+cosmog_zips/
+cosmog_updates/
+downloads/
+update/
+
+# Per-device cached configs (may contain secrets)
+device_configs/
+
+# User's device list (contains LAN IPs)
+known_devices.json
+
+# Compiled Cosmog launcher binaries
+c
+c.backup
+
+# Misc
+.codex

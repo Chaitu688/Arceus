@@ -1,0 +1,25 @@
+[rotom]
+rotom_worker_endpoint = "ws://YOUR_SERVER_IP:3621"
+rotom_device_endpoint = "ws://YOUR_SERVER_IP:3621/control"
+rotom_secret = "your-rotom-secret-here"
+use_compression = true
+
+[general]
+device_name = "my-device"
+workers = 50
+klefki_token = "your-klefki-token-here"
+
+[log]
+level = "info"
+use_colors = true
+log_to_file = true
+max_size = 10
+max_backups = 10
+max_age = 30
+compress = true
+
+[tuning]
+worker_spawn_delay_ms = 500
+
+[advanced]
+dns_server = "1.1.1.1:53"
