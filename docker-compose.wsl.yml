@@ -1,0 +1,25 @@
+# Docker Compose for WSL2 / Docker Desktop (no host networking)
+#
+# On Docker Desktop (Windows/macOS), network_mode: host is not supported.
+# This config uses port mapping instead.
+#
+# For ADB: set ADB_SERVER_SOCKET=host.docker.internal:5037 to reach the
+# Windows ADB daemon from inside the container.
+
+services:
+  cosmog-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmog-device-panel
+    ports:
+      - "8090:8090"
+    environment:
+      ADB_SERVER_SOCKET: tcp:host.docker.internal:5037
+      MANAGE_ADB: "0"
+      PANEL_PORT: "8090"
+    volumes:
+      - .:/workspace
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
