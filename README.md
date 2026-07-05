@@ -11,27 +11,37 @@ A local web UI for managing Android devices running Pokémon Go with Cosmog. Con
 ## Quick Start
 
 ```bash
-git clone <repo-url> cosmog-panel
+git clone https://github.com/Chaitu688/Arceus.git cosmog-panel
 cd cosmog-panel
 ./setup.sh
 ```
 
-Then drop your asset files into the managed folders:
+That's it — the panel starts automatically. Open the URL printed by setup.sh.
 
-| Folder | Put here |
+### Updating Pokémon Go
+
+The panel downloads PoGo APKs and plugins directly from the mirror — **no manual file copying needed**:
+
+1. Connect a device via ADB (TCP or USB)
+2. Click **"Update PoGo"** on the device row
+3. Pick a version from the version picker
+4. The panel downloads the APKs + plugin, pushes them, and restarts Cosmog
+
+### Updating Cosmog (optional)
+
+Drop a Cosmog launcher ZIP in `cosmog_zips/` and click **"Update Cosmog"** on a connected device. The ZIP should contain:
+- `com.nianticlabs.pokemongo` (launcher executable)
+- `lib/libart.so` (and any other libraries)
+- `config.toml` (optional — Cosmog config)
+
+## Managed Folders
+
+| Folder | Purpose |
 |---|---|
-| `base_apks/` | Pokémon Go base APK (newest `.apk` wins) |
-| `split_apks/` | Pokémon Go split config APK (newest `.apk` wins) |
-| `plugin_libs/` | `libNianticLabsPlugin.so` (newest `.so` wins) |
-| `cosmog_zips/` | Cosmog launcher ZIP (newest `.zip` wins) |
-
-Start the panel:
-
-```bash
-python3 device_panel.py
-```
-
-Open **http://127.0.0.1:8080**.
+| `cosmog_zips/` | Cosmog launcher ZIPs (newest `.zip` used by "Update Cosmog") |
+| `base_apks/` | Auto-populated by "Update PoGo" from mirror |
+| `split_apks/` | Auto-populated by "Update PoGo" from mirror |
+| `plugin_libs/` | Auto-populated by "Update PoGo" from mirror |
 
 ## Configuration
 
