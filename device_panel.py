@@ -1546,7 +1546,7 @@ class DevicePanel:
             config_members = [
                 name for name in members
                 if not name.endswith("/") and name.rstrip("/").count("/") == 0
-                and os.path.basename(name) == "config.toml"
+                and os.path.basename(name) in ("config.toml", "config.toml.example")
             ]
             config_path: pathlib.Path | None = None
             if config_members:
